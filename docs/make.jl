@@ -7,6 +7,14 @@
 using Documenter
 using ChangesOfVariables
 
+# Doctest setup
+DocMeta.setdocmeta!(
+    ChangesOfVariables,
+    :DocTestSetup,
+    :(using ChangesOfVariables);
+    recursive=true,
+)
+
 makedocs(
     sitename = "ChangesOfVariables",
     modules = [ChangesOfVariables],
