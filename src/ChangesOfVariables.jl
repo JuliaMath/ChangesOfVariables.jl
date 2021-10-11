@@ -1,7 +1,5 @@
 # This file is a part of ChangesOfVariables.jl, licensed under the MIT License (MIT).
 
-__precompile__(true)
-
 """
     ChangesOfVariables
 
