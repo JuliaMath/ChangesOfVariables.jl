@@ -1,5 +1,9 @@
 # ChangesOfVariables.jl
 
+```@docs
+ChangesOfVariables
+```
+
 This package defines the function [`with_logabsdet_jacobian`](@ref). `(y, ladj) = with_logabsdet_jacobian(f, x)` computes both the transformed value of `x` under the transformation `f` and the logarithm of the [volume element](https://en.wikipedia.org/wiki/Volume_element).
 
 `with_logabsdet_jacobian` supports mapped/broadcasted functions (via `Base.Fix1`) and (on Julia >=v1.6) function composition.
