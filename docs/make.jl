@@ -20,7 +20,7 @@ makedocs(
     modules = [ChangesOfVariables],
     format = Documenter.HTML(
         prettyurls = !("local" in ARGS),
-        canonical = "https://oschulz.github.io/ChangesOfVariables.jl/stable/"
+        canonical = "https://JuliaMath.github.io/ChangesOfVariables.jl/stable/"
     ),
     pages = [
         "Home" => "index.md",
@@ -33,7 +33,7 @@ makedocs(
 )
 
 deploydocs(
-    repo = "github.com/oschulz/ChangesOfVariables.jl.git",
+    repo = "github.com/JuliaMath/ChangesOfVariables.jl.git",
     forcepush = true,
     push_preview = true,
 )
