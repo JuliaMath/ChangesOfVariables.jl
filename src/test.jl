@@ -17,7 +17,7 @@ So the test uses `getjacobian(f, x)` to calculate a reference Jacobian for
 the `getjacobian` function will do fine in most cases. If input and output
 of `f` are real scalar values, use `ForwardDiff.derivative`.
 
-If `getjacobian(f, x)` can't handle the type of `x` of `f(x)` because they
+If `getjacobian(f, x)` can't handle the type of `x` or `f(x)` because they
 are not real-valued vectors, use the `rv_and_back` argument to pass a
 function with the following behavior
 
