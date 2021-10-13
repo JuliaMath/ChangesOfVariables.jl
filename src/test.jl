@@ -1,22 +1,10 @@
 # This file is a part of ChangesOfVariables.jl, licensed under the MIT License (MIT).
 
 
-_generalized_logabsdet(A) = logabsdet(A)
-_generalized_logabsdet(x::Real) = log(abs(x))
-
-function _auto_with_logabsdet_jacobian(f, x, getjacobian, rv_and_back)
-    y = f(x)
-    V, to_x = rv_and_back(x)
-    vf(V) = rv_and_back(f(to_x(V)))[1]
-    ladj = _generalized_logabsdet(getjacobian(vf, V))[1]
-    return (y, ladj)
-end
-
-
 """
     ChangesOfVariables.test_with_logabsdet_jacobian(
         f, x, getjacobian, rv_and_back = x -> (x, identity);
-        compare = isapprox, test_inferred::Bool = true, kwargs...
+        compare = isapprox, kwargs...
     )
 
 Test if [`with_logabsdet_jacobian(f, x)`](@ref) is implemented correctly.
@@ -46,17 +34,31 @@ be tested.
 """
 function test_with_logabsdet_jacobian(
     f, x, getjacobian, rv_and_back = x -> (x, identity);
-    compare = isapprox, test_inferred::Bool = true, kwargs...
+    compare = isapprox, kwargs...
 )
     @testset "test_with_logabsdet_jacobian: $f with input $x" begin
-        y, ladj = if test_inferred
+        ref_y, test_type_inference = try
+            @inferred(f(x)), true
+        catch err
+            f(x), false
+        end
+
+        y, ladj = if test_type_inference
             @inferred with_logabsdet_jacobian(f, x)
         else
             with_logabsdet_jacobian(f, x)
         end
-        ref_y, ref_ladj = _auto_with_logabsdet_jacobian(f, x, getjacobian, rv_and_back)
+
+        V, to_x = rv_and_back(x)
+        vf(V) = rv_and_back(f(to_x(V)))[1]
+        ref_ladj = _generalized_logabsdet(getjacobian(vf, V))[1]
+    
         @test compare(y, ref_y; kwargs...)
         @test compare(ladj, ref_ladj; kwargs...)
     end
     return nothing
 end
+
+
+_generalized_logabsdet(A) = logabsdet(A)
+_generalized_logabsdet(x::Real) = log(abs(x))

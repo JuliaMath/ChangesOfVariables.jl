@@ -22,20 +22,22 @@ end
 
 
 @testset "test_with_logabsdet_jacobian" begin
-    x = Complex(0.2, -0.7)
-    y, ladj_y = ChangesOfVariables._auto_with_logabsdet_jacobian(inv, x, ForwardDiff.jacobian, rv_and_back)
-    @test y == inv(x)
-    @test ladj_y ≈ -4 * log(abs(x))
-
-    X = Complex.(randn(3,3), randn(3,3))
-    Y, ladj_Y = ChangesOfVariables._auto_with_logabsdet_jacobian(inv, X, ForwardDiff.jacobian, rv_and_back)
-    @test Y == inv(X)
-    @test ladj_Y ≈ -4 * 3 * logabsdet(X)[1]
+    rx = 0.5
+    cx = Complex(0.2, -0.7)
+    X = rand(3, 3)
+    CX = Complex.(randn(3,3), randn(3,3))
 
     myisapprox(a, b; kwargs...) = isapprox(a, b; kwargs...)
-    test_with_logabsdet_jacobian(inv, 0.5, ForwardDiff.derivative, test_inferred = true, atol = 10^-6)
-    test_with_logabsdet_jacobian(inv, rand(2,2), ForwardDiff.jacobian, test_inferred = true, atol = 10^-6)
-    test_with_logabsdet_jacobian(inv, X, ForwardDiff.jacobian, rv_and_back, test_inferred = true, atol = 10^-6)
-    test_with_logabsdet_jacobian(inv, X, ForwardDiff.jacobian, rv_and_back, test_inferred = false, atol = 10^-6)
-    test_with_logabsdet_jacobian(inv, X, ForwardDiff.jacobian, rv_and_back, compare = myisapprox, atol = 10^-6)
+
+    noninferrable_inv(x) = x!=rand(size(x)...) ? inv(x) : ""
+    ChangesOfVariables.with_logabsdet_jacobian(::typeof(noninferrable_inv), x) = noninferrable_inv(x), with_logabsdet_jacobian(inv, x)[2]
+    @test_throws ErrorException @inferred with_logabsdet_jacobian(noninferrable_inv, rand(2, 2))
+
+    test_with_logabsdet_jacobian(inv, rx, ForwardDiff.derivative, atol = 10^-6)
+    test_with_logabsdet_jacobian(inv, cx, ForwardDiff.jacobian, rv_and_back, atol = 10^-6)
+    test_with_logabsdet_jacobian(inv, X, ForwardDiff.jacobian, atol = 10^-6)
+    test_with_logabsdet_jacobian(inv, CX, ForwardDiff.jacobian, rv_and_back, atol = 10^-6)
+    test_with_logabsdet_jacobian(inv, CX, ForwardDiff.jacobian, rv_and_back, atol = 10^-6)
+    test_with_logabsdet_jacobian(inv, CX, ForwardDiff.jacobian, rv_and_back, compare = myisapprox, atol = 10^-6)
+    test_with_logabsdet_jacobian(noninferrable_inv, CX, ForwardDiff.jacobian, rv_and_back, atol = 10^-6)
 end
