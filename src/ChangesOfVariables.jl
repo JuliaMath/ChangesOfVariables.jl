@@ -10,7 +10,9 @@ transformations).
 module ChangesOfVariables
 
 using LinearAlgebra
+using Test
 
 include("with_ladj.jl")
+include("test.jl")
 
 end # module

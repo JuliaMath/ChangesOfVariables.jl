@@ -5,6 +5,7 @@ import ChangesOfVariables
 import Documenter
 
 Test.@testset "Package ChangesOfVariables" begin
+    include("test_test.jl")
     include("test_with_ladj.jl")
 
     # doctests
@@ -16,3 +17,4 @@ Test.@testset "Package ChangesOfVariables" begin
     )
     Documenter.doctest(ChangesOfVariables)
 end # testset
+
