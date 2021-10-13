@@ -1,47 +1,22 @@
 # This file is a part of ChangesOfVariables.jl, licensed under the MIT License (MIT).
 
 
-_to_realvec_and_back(V::AbstractVector{<:Real}) = V, identity
-_to_realvec_and_back(x::Real) = [x], V -> V[1]
-_to_realvec_and_back(x::Complex) = [real(x), imag(x)], V -> Complex(V[1], V[2])
-_to_realvec_and_back(x::NTuple{N}) where N = [x...], V -> ntuple(i -> V[i], Val(N))
+_generalized_logabsdet(A) = logabsdet(A)
+_generalized_logabsdet(x::Real) = log(abs(x))
 
-function _to_realvec_and_back(x::Ref)
-    xval = x[]
-    V, to_xval = _to_realvec_and_back(xval)
-    back_to_ref(V) = Ref(to_xval(V))
-    return (V, back_to_ref)
-end
-
-_to_realvec_and_back(A::AbstractArray{<:Real}) = vec(A), V -> reshape(V, size(A))
-
-function _to_realvec_and_back(A::AbstractArray{Complex{T}, N}) where {T<:Real, N}
-    RA = cat(real.(A), imag.(A), dims = N+1) 
-    V, to_array = _to_realvec_and_back(RA)
-    function back_to_complex(V)
-        RA = to_array(V)
-        Complex.(view(RA, map(_ -> :, size(A))..., 1), view(RA, map(_ -> :, size(A))..., 2))
-    end
-    return (V, back_to_complex)
-end
-
-
-_to_realvec(x) = _to_realvec_and_back(x)[1]
-
-
-function _auto_with_logabsdet_jacobian(f, x, getjacobian)
+function _auto_with_logabsdet_jacobian(f, x, getjacobian, rv_and_back)
     y = f(x)
-    V, to_x = _to_realvec_and_back(x)
-    vf(V) = _to_realvec(f(to_x(V)))
-    ladj = logabsdet(getjacobian(vf, V))[1]
+    V, to_x = rv_and_back(x)
+    vf(V) = rv_and_back(f(to_x(V)))[1]
+    ladj = _generalized_logabsdet(getjacobian(vf, V))[1]
     return (y, ladj)
 end
 
 
 """
     ChangesOfVariables.test_with_logabsdet_jacobian(
-        f, x, getjacobian;
-        test_inferred::Bool = true, kwargs...
+        f, x, getjacobian, rv_and_back = x -> (x, identity);
+        compare = isapprox, test_inferred::Bool = true, kwargs...
     )
 
 Test if [`with_logabsdet_jacobian(f, x)`](@ref) is implemented correctly.
@@ -51,26 +26,35 @@ equal to `(f(x), logabsdet(getjacobian(f, x)))`
         
 So the test uses `getjacobian(f, x)` to calculate a reference Jacobian for
 `f` at `x`. Passing `ForwardDiff.jabobian`, `Zygote.jacobian` or similar as
-the `getjacobian` function will do fine in most cases.
+the `getjacobian` function will do fine in most cases. If input and output
+of `f` are real scalar values, use `ForwardDiff.derivative`.
 
-If `x` or `f(x)` are real-valued scalars or complex-valued scalars or arrays,
-the test will try to reshape them automatically, to account for limitations
-of (e.g.) `ForwardDiff` and to ensure the result of `getjacobian` is a real
-matrix.
+If `getjacobian(f, x)` can't handle the type of `x` of `f(x)` because they
+are not real-valued vectors, use the `rv_and_back` argument to pass a
+function with the following behavior
 
-If `test_inferred == true` will test type inference on
-`with_logabsdet_jacobian`.
+```julia
+v, back = rv_and_back(x)
+v isa AbstractVector{<:Real}
+back(v) == x
+```
 
-`kwargs...` are forwarded to `isapprox`.
+If `test_inferred == true`, type inference on `with_logabsdet_jacobian` will
+be tested.
+
+`kwargs...` are forwarded to `compare`.
 """
-function test_with_logabsdet_jacobian(f, x, getjacobian; compare=isapprox, test_inferred::Bool = true, kwargs...)
+function test_with_logabsdet_jacobian(
+    f, x, getjacobian, rv_and_back = x -> (x, identity);
+    compare = isapprox, test_inferred::Bool = true, kwargs...
+)
     @testset "test_with_logabsdet_jacobian: $f with input $x" begin
         y, ladj = if test_inferred
             @inferred with_logabsdet_jacobian(f, x)
         else
             with_logabsdet_jacobian(f, x)
         end
-        ref_y, ref_ladj = _auto_with_logabsdet_jacobian(f, x, getjacobian)
+        ref_y, ref_ladj = _auto_with_logabsdet_jacobian(f, x, getjacobian, rv_and_back)
         @test compare(y, ref_y; kwargs...)
         @test compare(ladj, ref_ladj; kwargs...)
     end

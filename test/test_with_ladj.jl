@@ -8,6 +8,8 @@ import ForwardDiff
 
 using ChangesOfVariables: test_with_logabsdet_jacobian
 
+include("rv_and_back.jl")
+
 
 @testset "with_logabsdet_jacobian" begin
     foo(x) = inv(exp(-x) + 1)
@@ -31,16 +33,16 @@ using ChangesOfVariables: test_with_logabsdet_jacobian
     isaprx(a::NTuple{N,Any}, b::NTuple{N,Any}; kwargs...) where N = all(map((a,b) -> isaprx(a, b; kwargs...), a, b))
 
 
-    test_with_logabsdet_jacobian(foo, x, getjacobian)
+    test_with_logabsdet_jacobian(foo, x, getjacobian, rv_and_back)
 
     @static if VERSION >= v"1.6"
-        test_with_logabsdet_jacobian(log ∘ foo, x, getjacobian)
+        test_with_logabsdet_jacobian(log ∘ foo, x, getjacobian, rv_and_back)
     end
 
     @testset "getjacobian on mapped and broadcasted" begin
         for f in (Base.Fix1(map, foo), Base.Fix1(broadcast, foo))
             for arg in (x, fill(x,), Ref(x), (x,), X)
-                test_with_logabsdet_jacobian(f, arg, getjacobian, compare = isaprx)
+                test_with_logabsdet_jacobian(f, arg, getjacobian, rv_and_back, compare = isaprx)
             end
         end
     end
@@ -48,14 +50,14 @@ using ChangesOfVariables: test_with_logabsdet_jacobian
     @testset "getjacobian on identity, adjoint and transpose" begin
         for f in (identity, adjoint, transpose)
             for arg in (x, A)
-                test_with_logabsdet_jacobian(f, arg, getjacobian)
+                test_with_logabsdet_jacobian(f, arg, getjacobian, rv_and_back)
             end
         end
     end
 
     @testset "getjacobian on inv" begin
         for arg in (x, A, CA)
-            test_with_logabsdet_jacobian(inv, arg, getjacobian)
+            test_with_logabsdet_jacobian(inv, arg, getjacobian, rv_and_back)
         end
     end
 end
