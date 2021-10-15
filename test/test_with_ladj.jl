@@ -32,7 +32,7 @@ include("getjacobian.jl")
         test_with_logabsdet_jacobian(log ∘ foo, x, getjacobian)
     end
 
-    @testset "getjacobian on mapped and broadcasted" begin
+    @testset "with_logabsdet_jacobian on mapped and broadcasted" begin
         for f in (Base.Fix1(map, foo), Base.Fix1(broadcast, foo))
             for arg in (x, fill(x,), Ref(x), (x,), X)
                 test_with_logabsdet_jacobian(f, arg, getjacobian, compare = isaprx)
@@ -40,7 +40,7 @@ include("getjacobian.jl")
         end
     end
 
-    @testset "getjacobian on identity, adjoint and transpose" begin
+    @testset "with_logabsdet_jacobian on identity, adjoint and transpose" begin
         for f in (identity, adjoint, transpose)
             for arg in (x, A)
                 test_with_logabsdet_jacobian(f, arg, getjacobian)
@@ -48,9 +48,15 @@ include("getjacobian.jl")
         end
     end
 
-    @testset "getjacobian on inv" begin
+    @testset "with_logabsdet_jacobian on inv" begin
         for arg in (x, A, CA)
             test_with_logabsdet_jacobian(inv, arg, getjacobian)
+        end
+    end
+
+    @testset "with_logabsdet_jacobian on log and exp functions" begin
+        for f in (exp, log, exp2, log2, exp10, log10, expm1, log1p)
+            test_with_logabsdet_jacobian(f, x, getjacobian)
         end
     end
 end
