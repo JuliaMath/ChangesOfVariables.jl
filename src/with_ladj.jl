@@ -52,6 +52,10 @@ z == log(foo(x)) && ladj_z == ladj_y + with_logabsdet_jacobian(log, y)[2]
 
 true
 ```
+
+Implementations of with_logabsdet_jacobian can be tested (as a
+`Test.@testset`) using
+[`ChangesOfVariables.test_with_logabsdet_jacobian`](@ref).
 """
 function with_logabsdet_jacobian end
 export with_logabsdet_jacobian
