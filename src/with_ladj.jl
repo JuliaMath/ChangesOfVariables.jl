@@ -17,6 +17,8 @@ For `(y, ladj) = with_logabsdet_jacobian(f, x)`, the following must hold true:
 # Examples
 
 ```jldoctest a
+using ChangesOfVariables
+
 foo(x) = inv(exp(-x) + 1)
 
 function ChangesOfVariables.with_logabsdet_jacobian(::typeof(foo), x)
@@ -28,25 +30,30 @@ end
 x = 4.2
 y, ladj_y = with_logabsdet_jacobian(foo, x)
 
+using LinearAlgebra, ForwardDiff
+y == foo(x) && ladj_y ≈ log(abs(ForwardDiff.derivative(foo, x)))
+
 # output
 
-(0.9852259683067269, -4.229768509343836)
+true
 ```
 
 ```jldoctest a
-X = [3, 7, 5]
+X = rand(10)
 broadcasted_foo = Base.Fix1(broadcast, foo)
 Y, ladj_Y = with_logabsdet_jacobian(broadcasted_foo, X)
+Y == broadcasted_foo(X) && ladj_Y ≈ logabsdet(ForwardDiff.jacobian(broadcasted_foo, X))[1]
 
 # output
 
-([0.9525741268224334, 0.9990889488055994, 0.9933071490757153], -15.112428333033268)
+true
 ```
 
 ```jldoctest a
-# Requires Julia >= v1.6:
-z, ladj_z = with_logabsdet_jacobian(log ∘ foo, x)
-z == log(foo(x)) && ladj_z == ladj_y + with_logabsdet_jacobian(log, y)[2]
+VERSION < v"1.6" || begin # Support for ∘ requires Julia >= v1.6
+    z, ladj_z = with_logabsdet_jacobian(log ∘ foo, x)
+    z == log(foo(x)) && ladj_z == ladj_y + with_logabsdet_jacobian(log, y)[2]
+end
 
 # output
 
