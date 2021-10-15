@@ -2,10 +2,7 @@
 
 
 """
-    ChangesOfVariables.test_with_logabsdet_jacobian(
-        f, x, getjacobian, rv_and_back = x -> (x, identity);
-        compare = isapprox, kwargs...
-    )
+    ChangesOfVariables.test_with_logabsdet_jacobian(f, x, getjacobian; compare = isapprox, kwargs...)
 
 Test if [`with_logabsdet_jacobian(f, x)`](@ref) is implemented correctly.
 
@@ -17,25 +14,14 @@ So the test uses `getjacobian(f, x)` to calculate a reference Jacobian for
 the `getjacobian` function will do fine in most cases. If input and output
 of `f` are real scalar values, use `ForwardDiff.derivative`.
 
-If `getjacobian(f, x)` can't handle the type of `x` or `f(x)` because they
-are not real-valued vectors, use the `rv_and_back` argument to pass a
-function with the following behavior
-
-```julia
-v, back = rv_and_back(x)
-v isa AbstractVector{<:Real}
-back(v) == x
-```
-
-If `test_inferred == true`, type inference on `with_logabsdet_jacobian` will
-be tested.
+Note that the result of `getjacobian(f, x)` must be a real-valued matrix
+or a real scalar, so you may need to use a custom `getjacobian` function
+that transforms the shape of `x` and `f(x)` internally, in conjunction
+with automatic differentiation.
 
 `kwargs...` are forwarded to `compare`.
 """
-function test_with_logabsdet_jacobian(
-    f, x, getjacobian, rv_and_back = x -> (x, identity);
-    compare = isapprox, kwargs...
-)
+function test_with_logabsdet_jacobian(f, x, getjacobian; compare = isapprox, kwargs...)
     @testset "test_with_logabsdet_jacobian: $f with input $x" begin
         ref_y, test_type_inference = try
             @inferred(f(x)), true
@@ -49,9 +35,7 @@ function test_with_logabsdet_jacobian(
             with_logabsdet_jacobian(f, x)
         end
 
-        V, to_x = rv_and_back(x)
-        vf(V) = rv_and_back(f(to_x(V)))[1]
-        ref_ladj = _generalized_logabsdet(getjacobian(vf, V))[1]
+        ref_ladj = _generalized_logabsdet(getjacobian(f, x))[1]
     
         @test compare(y, ref_y; kwargs...)
         @test compare(ladj, ref_ladj; kwargs...)
