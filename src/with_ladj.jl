@@ -84,7 +84,17 @@ _with_ladj_on_mapped(map_or_bc::Function, y_with_ladj::Tuple{Any,Real}) = y_with
 function _with_ladj_on_mapped(map_or_bc::Function, y_with_ladj)
     y = map_or_bc(_get_y, y_with_ladj)
     ladj = sum(map_or_bc(_get_ladj, y_with_ladj))
+    #ladj = sum(_get_ladj, y_with_ladj)
     (y, ladj)
+end
+
+function _with_ladj_on_mapped_pullback(thunked_ΔΩ)
+    ys, ladj = ChainRulesCore.unthunk(thunked_ΔΩ)
+    NoTangent(), NoTangent(), broadcast(x -> (x, ladj), ys)
+end
+
+function ChainRulesCore.rrule(::typeof(ChangesOfVariables._with_ladj_on_mapped), map_or_bc::Function, y_with_ladj)
+    return ChangesOfVariables._with_ladj_on_mapped(map_or_bc, y_with_ladj), _with_ladj_on_mapped_pullback
 end
 
 function with_logabsdet_jacobian(mapped_f::Base.Fix1{<:Union{typeof(map),typeof(broadcast)}}, X)

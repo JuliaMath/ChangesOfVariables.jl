@@ -9,6 +9,7 @@ transformations).
 """
 module ChangesOfVariables
 
+using ChainRulesCore
 using LinearAlgebra
 using Test
 

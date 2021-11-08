@@ -5,7 +5,8 @@ using Test
 
 using LinearAlgebra
 
-using ChangesOfVariables: test_with_logabsdet_jacobian
+using ChangesOfVariables: test_with_logabsdet_jacobian, _with_ladj_on_mapped
+using ChainRulesCore
 
 include("getjacobian.jl")
 
@@ -57,6 +58,15 @@ include("getjacobian.jl")
     @testset "with_logabsdet_jacobian on log and exp functions" begin
         for f in (exp, log, exp2, log2, exp10, log10, expm1, log1p)
             test_with_logabsdet_jacobian(f, x, getjacobian)
+        end
+    end
+
+    @testset "rrules" begin
+        for map_or_bc in (map, broadcast)
+            x = [(1, 2), (3, 4), (5, 6)]
+            y, back = rrule(_with_ladj_on_mapped, map_or_bc, x)
+            @test y == ([1, 3, 5], 12) == _with_ladj_on_mapped(map_or_bc, x)
+            @test back(@thunk ([7, 8, 9], 12)) == (ChainRulesCore.NoTangent(), ChainRulesCore.NoTangent(), [(7, 12), (8, 12), (9, 12)])
         end
     end
 end
