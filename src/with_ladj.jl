@@ -79,12 +79,14 @@ end
 @inline _get_y(y_with_ladj::NTuple{2,Any,}) = y_with_ladj[1]
 @inline _get_ladj(y_with_ladj::NTuple{2,Any}) = y_with_ladj[2]
 
-_with_ladj_on_mapped(map_or_bc::Function, y_with_ladj::Tuple{Any,Real}) = y_with_ladj
+function _with_ladj_on_mapped(map_or_bc::F, y_with_ladj::Tuple{Any,Real})  where {F<:Union{typeof(map),typeof(broadcast)}}
+    return y_with_ladj
+end
 
 function _with_ladj_on_mapped(map_or_bc::F, y_with_ladj) where {F<:Union{typeof(map),typeof(broadcast)}}
     y = map_or_bc(first, y_with_ladj)
     ladj = sum(map_or_bc(last, y_with_ladj))
-    #ladj = sum(_get_ladj, y_with_ladj)
+    ladj = sum(Broadcast.instantiate(Broadcast.broadcasted(last, y_with_ladj)))
     (y, ladj)
 end
 
