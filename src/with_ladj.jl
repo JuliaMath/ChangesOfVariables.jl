@@ -91,7 +91,7 @@ function _with_ladj_on_mapped_pullback(thunked_ΔΩ)
     return NoTangent(), NoTangent(), tuple.(ys, ladj)
 end
 
-function ChainRulesCore.rrule(::typeof(_with_ladj_on_mapped), map_or_bc::Function, y_with_ladj)
+function ChainRulesCore.rrule(::typeof(_with_ladj_on_mapped), map_or_bc::F, y_with_ladj) where {F<:Union{typeof(map),typeof(broadcast)}}
     return _with_ladj_on_mapped(map_or_bc, y_with_ladj), _with_ladj_on_mapped_pullback
 end
 
