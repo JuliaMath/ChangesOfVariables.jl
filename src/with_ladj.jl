@@ -82,7 +82,6 @@ end
 
 function _with_ladj_on_mapped(map_or_bc::F, y_with_ladj) where {F<:Union{typeof(map),typeof(broadcast)}}
     y = map_or_bc(first, y_with_ladj)
-    ladj = sum(map_or_bc(last, y_with_ladj))
     ladj = sum(Broadcast.instantiate(Broadcast.broadcasted(last, y_with_ladj)))
     (y, ladj)
 end
