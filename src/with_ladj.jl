@@ -76,9 +76,6 @@ export with_logabsdet_jacobian
 end
 
 
-@inline _get_y(y_with_ladj::NTuple{2,Any,}) = y_with_ladj[1]
-@inline _get_ladj(y_with_ladj::NTuple{2,Any}) = y_with_ladj[2]
-
 function _with_ladj_on_mapped(map_or_bc::F, y_with_ladj::Tuple{Any,Real})  where {F<:Union{typeof(map),typeof(broadcast)}}
     return y_with_ladj
 end
