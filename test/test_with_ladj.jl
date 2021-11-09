@@ -5,8 +5,9 @@ using Test
 
 using LinearAlgebra
 
-using ChangesOfVariables: test_with_logabsdet_jacobian, _with_ladj_on_mapped
-using ChainRulesCore
+using ChangesOfVariables
+using ChangesOfVariables: test_with_logabsdet_jacobian
+using ChainRulesTestUtils
 
 include("getjacobian.jl")
 
@@ -63,10 +64,7 @@ include("getjacobian.jl")
 
     @testset "rrules" begin
         for map_or_bc in (map, broadcast)
-            x = [(1, 2), (3, 4), (5, 6)]
-            y, back = rrule(_with_ladj_on_mapped, map_or_bc, x)
-            @test y == ([1, 3, 5], 12) == _with_ladj_on_mapped(map_or_bc, x)
-            @test back(@thunk ([7, 8, 9], 12)) == (ChainRulesCore.NoTangent(), ChainRulesCore.NoTangent(), [(7, 12), (8, 12), (9, 12)])
+            test_rrule(ChangesOfVariables._with_ladj_on_mapped, map_or_bc, [(1.0, 2.0), (3.0, 4.0), (5.0, 6.0)])
         end
     end
 end
