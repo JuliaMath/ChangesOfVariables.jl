@@ -82,7 +82,7 @@ end
 
 function _with_ladj_on_mapped(map_or_bc::F, y_with_ladj) where {F<:Union{typeof(map),typeof(broadcast)}}
     y = map_or_bc(first, y_with_ladj)
-    ladj = sum(Broadcast.instantiate(Broadcast.broadcasted(last, y_with_ladj)))
+    ladj = sum(last, y_with_ladj)
     (y, ladj)
 end
 
@@ -92,7 +92,7 @@ end
 struct WithLadjOnMappedPullback{YLT} <: Function end
 function (::WithLadjOnMappedPullback{YLT})(thunked_ΔΩ) where YLT
     ys, ladj = unthunk(thunked_ΔΩ)
-    return NoTangent(), NoTangent(), broadcast((y, l) -> Tangent{YLT}(y, l), ys, ladj)
+    return NoTangent(), NoTangent(), map(y -> Tangent{YLT}(y, ladj), ys)
 end
 
 function ChainRulesCore.rrule(::typeof(_with_ladj_on_mapped), map_or_bc::F, y_with_ladj) where {F<:Union{typeof(map),typeof(broadcast)}}
