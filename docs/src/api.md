@@ -4,6 +4,7 @@
 
 ```@docs
 with_logabsdet_jacobian
+NoLogAbsDetJacobian
 ```
 
 ## Test utility

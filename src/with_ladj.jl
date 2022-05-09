@@ -14,6 +14,9 @@ For `(y, ladj) = with_logabsdet_jacobian(f, x)`, the following must hold true:
 `with_logabsdet_jacobian` comes with support for broadcasted/mapped functions
 (via `Base.Fix1`) and (Julia >=v1.6 only) `ComposedFunction`.
 
+If no volume element is defined/applicable, `with_logabsdet_jacobian(f, x)` returns
+[`NoLogAbsDetJacobian(f)`](@ref).
+
 # Examples
 
 ```jldoctest a
@@ -66,6 +69,32 @@ Implementations of with_logabsdet_jacobian can be tested (as a
 """
 function with_logabsdet_jacobian end
 export with_logabsdet_jacobian
+
+
+
+"""
+    struct NoLogAbsDetJacobian{F,T}
+
+An instance `NoLogAbsDetJacobian{F,T}(f)` signifies that
+`with_logabsdet_jacobian(f, ::T)` is not defined.
+"""
+struct NoLogAbsDetJacobian{F,T}
+    f::F
+end
+export NoLogAbsDetJacobian
+
+function _no_ladj_errmsg(@nospecialize noladj::NoLogAbsDetJacobian{F,T}) where {F,T}
+    ("with_logabsdet_jacobian(", noladj.f, ", ::", T, " is not defined ")
+end
+
+Base.getindex(@nospecialize(noladj::NoLogAbsDetJacobian), args...) = error(_no_ladj_errmsg(noladj)...)
+Base.iterate(@nospecialize(noladj::NoLogAbsDetJacobian)) = error(_no_ladj_errmsg(noladj)...)
+Base.firstindex(@nospecialize(noladj::NoLogAbsDetJacobian)) = error(_no_ladj_errmsg(noladj)...)
+Base.lastindex(@nospecialize(noladj::NoLogAbsDetJacobian)) = error(_no_ladj_errmsg(noladj)...)
+
+with_logabsdet_jacobian(f::F, ::T) where {F,T} = NoLogAbsDetJacobian{F,T}(f, )
+
+
 
 @static if VERSION >= v"1.6"
     function with_logabsdet_jacobian(f::Base.ComposedFunction, x)
