@@ -118,6 +118,8 @@ with_logabsdet_jacobian(::typeof(inv), A::AbstractMatrix) = (inv(A), -2 * _ndof(
 with_logabsdet_jacobian(::typeof(adjoint), x) = (adjoint(x), zero(eltype(x)))
 with_logabsdet_jacobian(::typeof(transpose), x) = (transpose(x), zero(eltype(x)))
 
+with_logabsdet_jacobian(::typeof(+), x) = (+(x), zero(eltype(x)))
+with_logabsdet_jacobian(::typeof(-), x) = (-(x), zero(eltype(x)))
 
 with_logabsdet_jacobian(::typeof(exp), x) = (exp(x), x)
 with_logabsdet_jacobian(::typeof(exp2), x) = (exp2(x), log(2) * x + log(log(oftype(x, 2))))

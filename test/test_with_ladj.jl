@@ -57,7 +57,7 @@ include("getjacobian.jl")
     end
 
     @testset "with_logabsdet_jacobian on log and exp functions" begin
-        for f in (exp, log, exp2, log2, exp10, log10, expm1, log1p)
+        for f in (+, -, exp, log, exp2, log2, exp10, log10, expm1, log1p)
             test_with_logabsdet_jacobian(f, x, getjacobian)
         end
     end
