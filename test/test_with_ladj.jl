@@ -14,14 +14,7 @@ include("getjacobian.jl")
 
 @testset "with_logabsdet_jacobian" begin
     @test with_logabsdet_jacobian(sum, rand(5)) == NoLogAbsDetJacobian{typeof(sum),Vector{Float64}}(sum)
-    noladj = with_logabsdet_jacobian(sum, rand(5))
-    @test_throws ErrorException noladj[1]
-    @test_throws ErrorException noladj[2]
-    @test_throws ErrorException firstindex(noladj)
-    @test_throws ErrorException lastindex(noladj)
-    @test_throws ErrorException first(noladj)
-    @test_throws ErrorException last(noladj)
-    @test_throws ErrorException _, _ = noladj
+    @test_throws MethodError _, _ = with_logabsdet_jacobian(sum, rand(5))
 
     function ChangesOfVariables.with_logabsdet_jacobian(::typeof(foo), x)
         y = foo(x)
