@@ -15,7 +15,7 @@ For `(y, ladj) = with_logabsdet_jacobian(f, x)`, the following must hold true:
 (via `Base.Fix1`) and (Julia >=v1.6 only) `ComposedFunction`.
 
 If no volume element is defined/applicable, `with_logabsdet_jacobian(f::F, x::T)`
-returns [`NoLogAbsDetJacobian{F,T}(f)`](@ref).
+returns [`NoLogAbsDetJacobian{F,T}()`](@ref).
 
 # Examples
 
@@ -75,15 +75,12 @@ export with_logabsdet_jacobian
 """
     struct NoLogAbsDetJacobian{F,T}
 
-An instance `NoLogAbsDetJacobian{F,T}(f)` signifies that
-`with_logabsdet_jacobian(f, ::T)` is not defined.
+An instance `NoLogAbsDetJacobian{F,T}()` signifies that `with_logabsdet_jacobian(::F, ::T)` is not defined.
 """
-struct NoLogAbsDetJacobian{F,T}
-    f::F
-end
+struct NoLogAbsDetJacobian{F,T} end
 export NoLogAbsDetJacobian
 
-with_logabsdet_jacobian(f::F, ::T) where {F,T} = NoLogAbsDetJacobian{F,T}(f, )
+with_logabsdet_jacobian(::F, ::T) where {F,T} = NoLogAbsDetJacobian{F,T}()
 
 
 
