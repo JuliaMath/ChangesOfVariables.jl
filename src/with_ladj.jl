@@ -86,9 +86,19 @@ with_logabsdet_jacobian(::F, ::T) where {F,T} = NoLogAbsDetJacobian{F,T}()
 
 @static if VERSION >= v"1.6"
     function with_logabsdet_jacobian(f::Base.ComposedFunction, x)
-        y_inner, ladj_inner = with_logabsdet_jacobian(f.inner, x)
-        y, ladj_outer = with_logabsdet_jacobian(f.outer, y_inner)
-        (y, ladj_inner + ladj_outer)
+        y_ladj_inner = with_logabsdet_jacobian(f.inner, x)
+        if y_ladj_inner isa NoLogAbsDetJacobian
+            NoLogAbsDetJacobian{typeof(f),typeof(x)}()
+        else
+            y_inner, ladj_inner = y_ladj_inner
+            y_ladj_outer = with_logabsdet_jacobian(f.outer, y_inner)
+            if y_ladj_outer isa NoLogAbsDetJacobian
+                NoLogAbsDetJacobian{typeof(f),typeof(x)}()
+            else
+                y, ladj_outer = y_ladj_outer
+                (y, ladj_inner + ladj_outer)
+            end
+        end
     end
 end
 

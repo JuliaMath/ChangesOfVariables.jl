@@ -14,6 +14,8 @@ include("getjacobian.jl")
 
 @testset "with_logabsdet_jacobian" begin
     @test with_logabsdet_jacobian(sum, rand(5)) == NoLogAbsDetJacobian{typeof(sum),Vector{Float64}}()
+    @test with_logabsdet_jacobian(sum ∘ log, 5.0f0) == NoLogAbsDetJacobian{typeof(sum ∘ log),Float32}()
+    @test with_logabsdet_jacobian(log ∘ sum, 5.0f0) == NoLogAbsDetJacobian{typeof(log ∘ sum),Float32}()
     @test_throws MethodError _, _ = with_logabsdet_jacobian(sum, rand(5))
 
     function ChangesOfVariables.with_logabsdet_jacobian(::typeof(foo), x)
