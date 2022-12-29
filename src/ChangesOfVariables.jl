@@ -9,11 +9,13 @@ transformations).
 """
 module ChangesOfVariables
 
-using ChainRulesCore
 using LinearAlgebra
 using Test
 
 include("with_ladj.jl")
 include("test.jl")
+if !isdefined(Base, :get_extension)
+    include("../ext/ChainRulesCoreExt.jl")
+end
 
 end # module
