@@ -1,4 +1,4 @@
-module ChainRulesCoreExt
+module ChangesOfVariablesChainRulesCoreExt
 
 using ChainRulesCore
 
