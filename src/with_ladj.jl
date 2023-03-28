@@ -12,7 +12,8 @@ For `(y, ladj) = with_logabsdet_jacobian(f, x)`, the following must hold true:
 * `ladj` is the `log(abs(det(jacobian(f, x))))`
 
 `with_logabsdet_jacobian` comes with support for broadcasted/mapped functions
-(via `Base.Fix1`) and (Julia >=v1.6 only) `ComposedFunction`.
+(via `Base.Broadcast.BroadcastFunction` or `Base.Fix1`) and (Julia >=v1.6 only)
+`ComposedFunction`.
 
 If no volume element is defined/applicable, `with_logabsdet_jacobian(f::F, x::T)`
 returns [`NoLogAbsDetJacobian{F,T}()`](@ref).
@@ -43,7 +44,11 @@ true
 
 ```jldoctest a
 X = rand(10)
-broadcasted_foo = Base.Fix1(broadcast, foo)
+broadcasted_foo = if VERSION >= v"1.6"
+    Base.Broadcast.BroadcastFunction(foo)
+else
+    Base.Fix1(broadcast, foo)
+end
 Y, ladj_Y = with_logabsdet_jacobian(broadcasted_foo, X)
 Y == broadcasted_foo(X) && ladj_Y ≈ logabsdet(ForwardDiff.jacobian(broadcasted_foo, X))[1]
 
@@ -117,6 +122,13 @@ function _with_ladj_on_mapped(map_or_bc::F, y_with_ladj) where {F<:Union{typeof(
     (y, ladj)
 end
 
+@static if VERSION >= v"1.6"
+    function with_logabsdet_jacobian(mapped_f::Base.Broadcast.BroadcastFunction, X)
+        f = mapped_f.f
+        y_with_ladj = broadcast(Base.Fix1(with_logabsdet_jacobian, f), X)
+        _with_ladj_on_mapped(broadcast, y_with_ladj)
+    end
+end
 
 function with_logabsdet_jacobian(mapped_f::Base.Fix1{<:Union{typeof(map),typeof(broadcast)}}, X)
     map_or_bc = mapped_f.f

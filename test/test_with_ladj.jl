@@ -12,6 +12,12 @@ include("getjacobian.jl")
 
 
 @testset "with_logabsdet_jacobian" begin
+    @static if VERSION >= v"1.6"
+        _bc_func(f) = Base.Broadcast.BroadcastFunction(f)
+    else
+        _bc_func(f) = Base.Fix1(broadcast, f)
+    end
+
     @test with_logabsdet_jacobian(sum, rand(5)) == NoLogAbsDetJacobian{typeof(sum),Vector{Float64}}()
     @test with_logabsdet_jacobian(sum ∘ log, 5.0f0) == NoLogAbsDetJacobian{typeof(sum ∘ log),Float32}()
     @test with_logabsdet_jacobian(log ∘ sum, 5.0f0) == NoLogAbsDetJacobian{typeof(log ∘ sum),Float32}()
@@ -39,7 +45,7 @@ include("getjacobian.jl")
     end
 
     @testset "with_logabsdet_jacobian on mapped and broadcasted" begin
-        for f in (Base.Fix1(map, foo), Base.Fix1(broadcast, foo))
+        for f in (_bc_func(foo), Base.Fix1(map, foo), Base.Fix1(broadcast, foo))
             for arg in (x, fill(x,), Ref(x), (x,), X)
                 test_with_logabsdet_jacobian(f, arg, getjacobian, compare = isaprx)
             end
