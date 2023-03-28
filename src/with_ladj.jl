@@ -12,8 +12,7 @@ For `(y, ladj) = with_logabsdet_jacobian(f, x)`, the following must hold true:
 * `ladj` is the `log(abs(det(jacobian(f, x))))`
 
 `with_logabsdet_jacobian` comes with support for broadcasted/mapped functions
-(via `Base.Broadcast.BroadcastFunction` or `Base.Fix1`) and (Julia >=v1.6 only)
-`ComposedFunction`.
+(via `Base.Broadcast.BroadcastFunction` or `Base.Fix1`) and `ComposedFunction`.
 
 If no volume element is defined/applicable, `with_logabsdet_jacobian(f::F, x::T)`
 returns [`NoLogAbsDetJacobian{F,T}()`](@ref).
