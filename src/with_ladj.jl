@@ -107,9 +107,13 @@ function _with_ladj_on_mapped(map_or_bc::F, y_with_ladj::Tuple{Any,Real})  where
     return y_with_ladj
 end
 
+_get_all_first(x) = map(first, x)
+# Use x -> x[2] instead of last, using last causes horrible performance in Zygote here:
+_sum_over_second(x) = sum(x -> x[2], x)
+
 function _with_ladj_on_mapped(map_or_bc::F, y_with_ladj) where {F<:Union{typeof(map),typeof(broadcast)}}
-    y = map_or_bc(first, y_with_ladj)
-    ladj = sum(last, y_with_ladj)
+    y = _get_all_first(y_with_ladj)
+    ladj = _sum_over_second(y_with_ladj)
     (y, ladj)
 end
 

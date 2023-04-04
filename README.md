@@ -12,7 +12,7 @@ changes for functions that perform a change of variables (like coordinate
 transformations).
 
 `ChangesOfVariables` is a very lightweight package and has no dependencies
-beyond `Base`, `LinearAlgebra`, `Test` and `ChainRulesCore`.
+beyond `Base`, `LinearAlgebra`, `Test`.
 
 ## Documentation
 

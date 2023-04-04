@@ -7,7 +7,6 @@ using LinearAlgebra
 
 using ChangesOfVariables
 using ChangesOfVariables: test_with_logabsdet_jacobian
-using ChainRulesTestUtils
 
 include("getjacobian.jl")
 
@@ -64,12 +63,6 @@ include("getjacobian.jl")
     @testset "with_logabsdet_jacobian on log and exp functions" begin
         for f in (+, -, exp, log, exp2, log2, exp10, log10, expm1, log1p)
             test_with_logabsdet_jacobian(f, x, getjacobian)
-        end
-    end
-
-    @testset "rrules" begin
-        for map_or_bc in (map, broadcast)
-            test_rrule(ChangesOfVariables._with_ladj_on_mapped, map_or_bc, [(1.0, 2.0), (3.0, 4.0), (5.0, 6.0)])
         end
     end
 end
