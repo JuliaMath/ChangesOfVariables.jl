@@ -11,7 +11,7 @@ using ChangesOfVariables
 DocMeta.setdocmeta!(
     ChangesOfVariables,
     :DocTestSetup,
-    :(using ChangesOfVariables);
+    :(using ChangesOfVariables, InverseFunctions);
     recursive=true,
 )
 

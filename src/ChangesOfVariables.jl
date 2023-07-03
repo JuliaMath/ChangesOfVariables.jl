@@ -13,6 +13,11 @@ using LinearAlgebra
 using Test
 
 include("with_ladj.jl")
+include("setladj.jl")
 include("test.jl")
+
+@static if !isdefined(Base, :get_extension)
+    include("../ext/ChangesOfVariablesInverseFunctionsExt.jl")
+end
 
 end # module
