@@ -1,7 +1,7 @@
 module ChangesOfVariablesTestExt
 
 using Test: @inferred, @test, @testset
-using ChangesOfVariables: ChangesOfVariables, with_logabsdet_jacobian
+using ChangesOfVariables: ChangesOfVariables, logabsdet, with_logabsdet_jacobian
 
 function ChangesOfVariables.test_with_logabsdet_jacobian(f, x, getjacobian; compare = isapprox, kwargs...)
     @testset "test_with_logabsdet_jacobian: $f with input $x" begin
