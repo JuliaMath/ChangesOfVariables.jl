@@ -80,24 +80,34 @@ export with_logabsdet_jacobian
     struct NoLogAbsDetJacobian{F,T}
 
 An instance `NoLogAbsDetJacobian{F,T}()` signifies that `with_logabsdet_jacobian(::F, ::T)` is not defined.
+
+Constructors:
+```julia
+NoLogAbsDetJacobian(f, x)
+NoLogAbsDetJacobian{F,T}()
+```
 """
 struct NoLogAbsDetJacobian{F,T} end
 export NoLogAbsDetJacobian
 
-with_logabsdet_jacobian(::F, ::T) where {F,T} = NoLogAbsDetJacobian{F,T}()
+@inline NoLogAbsDetJacobian(::F, ::T) where {F,T} = NoLogAbsDetJacobian{F,T}()
+@inline NoLogAbsDetJacobian(::Type{F}, ::T) where {F,T} = NoLogAbsDetJacobian{Type{F},T}()
+@inline NoLogAbsDetJacobian(::F, ::Type{T}) where {F,T} = NoLogAbsDetJacobian{F,Type{T}}()
+@inline NoLogAbsDetJacobian(::Type{F}, ::Type{T}) where {F,T} = NoLogAbsDetJacobian{Type{F},Type{T}}()
 
+with_logabsdet_jacobian(f, x) = NoLogAbsDetJacobian(f, x)
 
 
 @static if VERSION >= v"1.6"
     function with_logabsdet_jacobian(f::Base.ComposedFunction, x)
         y_ladj_inner = with_logabsdet_jacobian(f.inner, x)
         if y_ladj_inner isa NoLogAbsDetJacobian
-            NoLogAbsDetJacobian{typeof(f),typeof(x)}()
+            NoLogAbsDetJacobian(f, x)
         else
             y_inner, ladj_inner = y_ladj_inner
             y_ladj_outer = with_logabsdet_jacobian(f.outer, y_inner)
             if y_ladj_outer isa NoLogAbsDetJacobian
-                NoLogAbsDetJacobian{typeof(f),typeof(x)}()
+                NoLogAbsDetJacobian(f, x)
             else
                 y, ladj_outer = y_ladj_outer
                 (y, ladj_inner + ladj_outer)

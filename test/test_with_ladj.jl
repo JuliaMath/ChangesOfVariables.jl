@@ -18,10 +18,17 @@ include("getjacobian.jl")
         _bc_func(f) = Base.Fix1(broadcast, f)
     end
 
-    @test with_logabsdet_jacobian(sum, rand(5)) == NoLogAbsDetJacobian{typeof(sum),Vector{Float64}}()
-    @test with_logabsdet_jacobian(sum ∘ log, 5.0f0) == NoLogAbsDetJacobian{typeof(sum ∘ log),Float32}()
-    @test with_logabsdet_jacobian(log ∘ sum, 5.0f0) == NoLogAbsDetJacobian{typeof(log ∘ sum),Float32}()
+    @test with_logabsdet_jacobian(sum, rand(5)) === NoLogAbsDetJacobian(sum, rand(5))
+    @test with_logabsdet_jacobian(log ∘ sum, 5.0f0) === NoLogAbsDetJacobian(log ∘ sum, 5.0f0)
     @test_throws MethodError _, _ = with_logabsdet_jacobian(sum, rand(5))
+
+    @test with_logabsdet_jacobian(sin, 4.9) === NoLogAbsDetJacobian{typeof(sin), Float64}()
+    @test with_logabsdet_jacobian(String, 4.9) === NoLogAbsDetJacobian{Type{String}, Float64}()
+    @test with_logabsdet_jacobian(String, Float64) === NoLogAbsDetJacobian{Type{String}, Type{Float64}}()
+    @test with_logabsdet_jacobian(sin, Float64) === NoLogAbsDetJacobian{typeof(sin), Type{Float64}}()
+
+    @test with_logabsdet_jacobian(sin ∘ log, 4.9) === NoLogAbsDetJacobian{typeof(sin ∘ log), Float64}()
+    @test with_logabsdet_jacobian(log ∘ sin, 4.9) === NoLogAbsDetJacobian{typeof(log ∘ sin), Float64}()
 
     function ChangesOfVariables.with_logabsdet_jacobian(::typeof(foo), x)
         y = foo(x)
