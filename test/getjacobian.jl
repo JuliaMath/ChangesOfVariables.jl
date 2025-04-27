@@ -1,5 +1,7 @@
 # This file is a part of ChangesOfVariables.jl, licensed under the MIT License (MIT).
 
+if !isdefined(Main, :getjacobian)
+
 import ForwardDiff
 
 torv_and_back(V::AbstractVector{<:Real}) = V, identity
@@ -33,4 +35,11 @@ function getjacobian(f, x)
     ForwardDiff.jacobian(vf, V)
 end
 
+end # !isdefined(Main, :getjacobian)
+
+
+if !isdefined(Main, :foo)
+
 foo(x) = inv(exp(-x) + 1)
+
+end # !isdefined(Main, :foo)
