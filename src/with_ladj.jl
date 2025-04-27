@@ -117,6 +117,10 @@ with_logabsdet_jacobian(f, x) = NoLogAbsDetJacobian(f, x)
 end
 
 
+function _with_ladj_on_mapped(@nospecialize(map_or_bc::F), y_with_ladj::NoLogAbsDetJacobian) where {F<:Union{typeof(map),typeof(broadcast)}}
+    return y_with_ladj
+end
+
 function _with_ladj_on_mapped(map_or_bc::F, y_with_ladj::Tuple{Any,Real})  where {F<:Union{typeof(map),typeof(broadcast)}}
     return y_with_ladj
 end

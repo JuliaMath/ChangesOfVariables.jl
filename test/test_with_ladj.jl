@@ -30,6 +30,8 @@ include("getjacobian.jl")
     @test with_logabsdet_jacobian(sin ∘ log, 4.9) === NoLogAbsDetJacobian{typeof(sin ∘ log), Float64}()
     @test with_logabsdet_jacobian(log ∘ sin, 4.9) === NoLogAbsDetJacobian{typeof(log ∘ sin), Float64}()
 
+    @test with_logabsdet_jacobian(Base.Fix1(broadcast, sin), 4.9) === NoLogAbsDetJacobian{typeof(sin), Float64}()
+
     function ChangesOfVariables.with_logabsdet_jacobian(::typeof(foo), x)
         y = foo(x)
         ladj = -x + 2 * log(y)
