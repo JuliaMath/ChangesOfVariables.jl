@@ -43,3 +43,12 @@ if !isdefined(Main, :foo)
 foo(x) = inv(exp(-x) + 1)
 
 end # !isdefined(Main, :foo)
+
+
+if !isdefined(Main, :bar)
+
+# with_logabsdet_jacobian for floats but not for integers 
+bar(x) = x
+ChangesOfVariables.with_logabsdet_jacobian(::typeof(bar), x::AbstractFloat) = (x, zero(x))
+
+end # !isdefined(Main, :bar)

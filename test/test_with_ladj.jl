@@ -49,10 +49,24 @@ include("getjacobian.jl")
 
     @testset "with_logabsdet_jacobian on mapped and broadcasted" begin
         for f in (_bc_func(foo), Base.Fix1(map, foo), Base.Fix1(broadcast, foo))
-            for arg in (x, fill(x,), Ref(x), (x,), X)
+            for arg in (x, fill(x,), Ref(x), (x,), (x, 2*x, 3*x), X)
                 test_with_logabsdet_jacobian(f, arg, getjacobian, compare = isaprx)
             end
         end
+    end
+
+    @testset "with_logabsdet_jacobian on mapped and broadcasted without ladj" begin
+        for f in (_bc_func(sin), Base.Fix1(map, sin), Base.Fix1(broadcast, sin))
+            for arg in (x, (x,), (x, x), X)
+                @test with_logabsdet_jacobian(f, arg) isa NoLogAbsDetJacobian{typeof(sin)}
+            end
+        end
+    end
+
+    @testset "with_logabsdet_jacobian on mapped and broadcasted with mixed ladj" begin
+        @test with_logabsdet_jacobian(_bc_func(bar), (1.0, 2.0)) == ((1.0, 2.0), 0.0)
+        @test with_logabsdet_jacobian(_bc_func(bar), (1.0, 2)) isa NoLogAbsDetJacobian
+        @test with_logabsdet_jacobian(Base.Fix1(map, bar), (1, 2.0)) isa NoLogAbsDetJacobian
     end
 
     @testset "with_logabsdet_jacobian on identity, adjoint and transpose" begin

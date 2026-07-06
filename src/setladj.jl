@@ -45,7 +45,7 @@ if `f` does so.
 Example:
 
 ```jldoctest setladj
-# Increases precition before calculation exp:
+# Increases precision before calculating exp:
 foo = exp ∘ setladj(setinverse(Float64, Float32), _ -> 0)
 
 # A log-value from some low-precision (e.g. GPU) computation:
