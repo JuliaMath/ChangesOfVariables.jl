@@ -4,11 +4,7 @@ using Test
 using ChangesOfVariables
 using InverseFunctions
 
-const ChangesOfVariablesInverseFunctionsExt = if isdefined(Base, :get_extension)
-    Base.get_extension(ChangesOfVariables, :ChangesOfVariablesInverseFunctionsExt)
-else
-    ChangesOfVariables.ChangesOfVariablesInverseFunctionsExt
-end
+const ChangesOfVariablesInverseFunctionsExt = Base.get_extension(ChangesOfVariables, :ChangesOfVariablesInverseFunctionsExt)
 const InverseFunctionWithLADJ = ChangesOfVariablesInverseFunctionsExt.InverseFunctionWithLADJ
 
 include("getjacobian.jl")

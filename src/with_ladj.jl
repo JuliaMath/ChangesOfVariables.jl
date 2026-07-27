@@ -43,11 +43,7 @@ true
 
 ```jldoctest a
 X = rand(10)
-broadcasted_foo = if VERSION >= v"1.6"
-    Base.Broadcast.BroadcastFunction(foo)
-else
-    Base.Fix1(broadcast, foo)
-end
+broadcasted_foo = Base.Broadcast.BroadcastFunction(foo)
 Y, ladj_Y = with_logabsdet_jacobian(broadcasted_foo, X)
 Y == broadcasted_foo(X) && ladj_Y ≈ logabsdet(ForwardDiff.jacobian(broadcasted_foo, X))[1]
 
@@ -57,10 +53,8 @@ true
 ```
 
 ```jldoctest a
-VERSION < v"1.6" || begin # Support for ∘ requires Julia >= v1.6
-    z, ladj_z = with_logabsdet_jacobian(log ∘ foo, x)
-    z == log(foo(x)) && ladj_z == ladj_y + with_logabsdet_jacobian(log, y)[2]
-end
+z, ladj_z = with_logabsdet_jacobian(log ∘ foo, x)
+z == log(foo(x)) && ladj_z == ladj_y + with_logabsdet_jacobian(log, y)[2]
 
 # output
 
@@ -98,20 +92,18 @@ export NoLogAbsDetJacobian
 with_logabsdet_jacobian(f, x) = NoLogAbsDetJacobian(f, x)
 
 
-@static if VERSION >= v"1.6"
-    function with_logabsdet_jacobian(f::Base.ComposedFunction, x)
-        y_ladj_inner = with_logabsdet_jacobian(f.inner, x)
-        if y_ladj_inner isa NoLogAbsDetJacobian
+function with_logabsdet_jacobian(f::Base.ComposedFunction, x)
+    y_ladj_inner = with_logabsdet_jacobian(f.inner, x)
+    if y_ladj_inner isa NoLogAbsDetJacobian
+        NoLogAbsDetJacobian(f, x)
+    else
+        y_inner, ladj_inner = y_ladj_inner
+        y_ladj_outer = with_logabsdet_jacobian(f.outer, y_inner)
+        if y_ladj_outer isa NoLogAbsDetJacobian
             NoLogAbsDetJacobian(f, x)
         else
-            y_inner, ladj_inner = y_ladj_inner
-            y_ladj_outer = with_logabsdet_jacobian(f.outer, y_inner)
-            if y_ladj_outer isa NoLogAbsDetJacobian
-                NoLogAbsDetJacobian(f, x)
-            else
-                y, ladj_outer = y_ladj_outer
-                (y, ladj_inner + ladj_outer)
-            end
+            y, ladj_outer = y_ladj_outer
+            (y, ladj_inner + ladj_outer)
         end
     end
 end
@@ -135,12 +127,10 @@ function _with_ladj_on_mapped(map_or_bc::F, y_with_ladj) where {F<:Union{typeof(
     (y, ladj)
 end
 
-@static if VERSION >= v"1.6"
-    function with_logabsdet_jacobian(mapped_f::Base.Broadcast.BroadcastFunction, X)
-        f = mapped_f.f
-        y_with_ladj = broadcast(Base.Fix1(with_logabsdet_jacobian, f), X)
-        _with_ladj_on_mapped(broadcast, y_with_ladj)
-    end
+function with_logabsdet_jacobian(mapped_f::Base.Broadcast.BroadcastFunction, X)
+    f = mapped_f.f
+    y_with_ladj = broadcast(Base.Fix1(with_logabsdet_jacobian, f), X)
+    _with_ladj_on_mapped(broadcast, y_with_ladj)
 end
 
 function with_logabsdet_jacobian(mapped_f::Base.Fix1{<:Union{typeof(map),typeof(broadcast)}}, X)

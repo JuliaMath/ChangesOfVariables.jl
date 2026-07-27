@@ -35,24 +35,16 @@ with automatic differentiation.
 `kwargs...` are forwarded to `compare`.
 
 !!! Note
-    On Julia >= 1.9, you have to load the `Test` standard library to be able to use
-    this function.
+    You have to load the `Test` standard library to be able to use this function.
 """
 function test_with_logabsdet_jacobian end
 
-@static if !isdefined(Base, :get_extension)
-    include("../ext/ChangesOfVariablesInverseFunctionsExt.jl")
-    include("../ext/ChangesOfVariablesTestExt.jl")
-end
-
 # Better error message if users forget to load Test
-if isdefined(Base, :get_extension) && isdefined(Base.Experimental, :register_error_hint)
-    function __init__()
-        Base.Experimental.register_error_hint(MethodError) do io, exc, _, _
-            if exc.f === test_with_logabsdet_jacobian &&
-                (Base.get_extension(ChangesOfVariables, :ChangesOfVariablesTest) === nothing)
-                print(io, "\nDid you forget to load Test?")
-            end
+function __init__()
+    Base.Experimental.register_error_hint(MethodError) do io, exc, _, _
+        if exc.f === test_with_logabsdet_jacobian &&
+            (Base.get_extension(ChangesOfVariables, :ChangesOfVariablesTest) === nothing)
+            print(io, "\nDid you forget to load Test?")
         end
     end
 end

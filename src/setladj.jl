@@ -45,20 +45,19 @@ if `f` does so.
 Example:
 
 ```jldoctest setladj
-VERSION < v"1.6" || begin # Support for ∘ requires Julia >= v1.6
-    # Increases precition before calculation exp:
-    foo = exp ∘ setladj(setinverse(Float64, Float32), _ -> 0)
+# Increases precition before calculation exp:
+foo = exp ∘ setladj(setinverse(Float64, Float32), _ -> 0)
 
-    # A log-value from some low-precision (e.g. GPU) computation:
-    log_x = Float32(100)
+# A log-value from some low-precision (e.g. GPU) computation:
+log_x = Float32(100)
 
-    # f(log_x) would return Inf32 without going to Float64:
-    y, ladj = with_logabsdet_jacobian(foo, log_x) 
+# f(log_x) would return Inf32 without going to Float64:
+y, ladj = with_logabsdet_jacobian(foo, log_x)
 
-    r_log_x, ladj_inv = with_logabsdet_jacobian(inverse(foo), y)
+r_log_x, ladj_inv = with_logabsdet_jacobian(inverse(foo), y)
 
-    ladj ≈ 100 ≈ -ladj_inv && r_log_x ≈ log_x
-end
+ladj ≈ 100 ≈ -ladj_inv && r_log_x ≈ log_x
+
 # output
 
 true
