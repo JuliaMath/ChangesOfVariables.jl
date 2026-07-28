@@ -26,7 +26,7 @@ include("getjacobian.jl")
     @test with_logabsdet_jacobian(sin ∘ log, 4.9) === NoLogAbsDetJacobian{typeof(sin ∘ log), Float64}()
     @test with_logabsdet_jacobian(log ∘ sin, 4.9) === NoLogAbsDetJacobian{typeof(log ∘ sin), Float64}()
 
-    @test with_logabsdet_jacobian(Base.Fix1(broadcast, sin), 4.9) === NoLogAbsDetJacobian{typeof(sin), Float64}()
+    @test with_logabsdet_jacobian(Base.Fix1(broadcast, sin), 4.9) === NoLogAbsDetJacobian(Base.Fix1(broadcast, sin), 4.9)
 
     function ChangesOfVariables.with_logabsdet_jacobian(::typeof(foo), x)
         y = foo(x)
@@ -58,15 +58,19 @@ include("getjacobian.jl")
     @testset "with_logabsdet_jacobian on mapped and broadcasted without ladj" begin
         for f in (_bc_func(sin), Base.Fix1(map, sin), Base.Fix1(broadcast, sin))
             for arg in (x, (x,), (x, x), X)
-                @test with_logabsdet_jacobian(f, arg) isa NoLogAbsDetJacobian{typeof(sin)}
+                @test with_logabsdet_jacobian(f, arg) === NoLogAbsDetJacobian(f, arg)
             end
         end
     end
 
     @testset "with_logabsdet_jacobian on mapped and broadcasted with mixed ladj" begin
         @test with_logabsdet_jacobian(_bc_func(bar), (1.0, 2.0)) == ((1.0, 2.0), 0.0)
-        @test with_logabsdet_jacobian(_bc_func(bar), (1.0, 2)) isa NoLogAbsDetJacobian
-        @test with_logabsdet_jacobian(Base.Fix1(map, bar), (1, 2.0)) isa NoLogAbsDetJacobian
+        @test with_logabsdet_jacobian(_bc_func(bar), [1.0, 2.0]) == ([1.0, 2.0], 0.0)
+        @test with_logabsdet_jacobian(_bc_func(bar), (1.0, 2)) === NoLogAbsDetJacobian(_bc_func(bar), (1.0, 2))
+        @test with_logabsdet_jacobian(Base.Fix1(map, bar), (1, 2.0)) === NoLogAbsDetJacobian(Base.Fix1(map, bar), (1, 2.0))
+        @test with_logabsdet_jacobian(_bc_func(bar), Real[1.0, 2]) === NoLogAbsDetJacobian(_bc_func(bar), Real[1.0, 2])
+        @test with_logabsdet_jacobian(Base.Fix1(map, bar), Real[1, 2.0]) === NoLogAbsDetJacobian(Base.Fix1(map, bar), Real[1, 2.0])
+        @test with_logabsdet_jacobian(Base.Fix1(broadcast, bar), Real[1, 2]) === NoLogAbsDetJacobian(Base.Fix1(broadcast, bar), Real[1, 2])
     end
 
     @testset "with_logabsdet_jacobian on identity, adjoint and transpose" begin

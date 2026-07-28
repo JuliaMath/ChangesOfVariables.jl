@@ -109,48 +109,41 @@ function with_logabsdet_jacobian(f::Base.ComposedFunction, x)
 end
 
 
-_with_ladj_on_mapped(y_with_ladj::NoLogAbsDetJacobian) = y_with_ladj
-
-_with_ladj_on_mapped(y_with_ladj::Tuple{Any,Real}) = y_with_ladj
-
-_with_ladj_on_mapped(::AbstractArray{<:NoLogAbsDetJacobian{F,T}}) where {F,T} = NoLogAbsDetJacobian{F,T}()
-
 _get_all_first(x) = map(first, x)
 _get_second(x) = x[2]
 # Use _get_second instead of last, using last causes horrible performance in Zygote here:
 _sum_over_second(x) = sum(_get_second, x)
 
-function _with_ladj_on_mapped(y_with_ladj)
+_combine_y_ladj(l, r) = ((l[1]..., r[1]), l[2] + r[2])
+
+_with_ladj_on_mapped(y_with_ladj::Tuple{Any,Any}, ::NoLogAbsDetJacobian) = y_with_ladj
+
+function _with_ladj_on_mapped(y_with_ladj::Tuple{Tuple{Any,Any}, Vararg{Tuple{Any,Any}}}, ::NoLogAbsDetJacobian)
+    a, bs = first(y_with_ladj), Base.tail(y_with_ladj)
+    return foldl(_combine_y_ladj, bs, init = ((a[1],), a[2]))
+end
+
+_with_ladj_on_mapped(y_with_ladj::Tuple{Vararg{Union{Tuple{Any,Any},NoLogAbsDetJacobian}}}, noladj::NoLogAbsDetJacobian) = noladj
+
+function _with_ladj_on_mapped(y_with_ladj::AbstractArray{<:Tuple{Any,Any}}, ::NoLogAbsDetJacobian)
     y = _get_all_first(y_with_ladj)
     ladj = _sum_over_second(y_with_ladj)
     (y, ladj)
 end
 
-_combine_y_ladj(l::NoLogAbsDetJacobian, @nospecialize(r::NoLogAbsDetJacobian)) = l
-_combine_y_ladj(l::NoLogAbsDetJacobian, @nospecialize(r::Tuple{Any,Real})) = l
-_combine_y_ladj(@nospecialize(l::Tuple{Any,Real}), r::NoLogAbsDetJacobian) = r
-_combine_y_ladj(l::Tuple{Any,Real}, r::Tuple{Any,Real}) = ((l[1]..., r[1]), l[2] + r[2])
-
-function _with_ladj_on_mapped(y_with_ladj::Tuple{NoLogAbsDetJacobian, Vararg{Union{NoLogAbsDetJacobian, Tuple{Any,Real}}}})
-    return first(y_with_ladj)
-end
-
-function _with_ladj_on_mapped(y_with_ladj::Tuple{Tuple{Any,Real}, Vararg{Union{NoLogAbsDetJacobian, Tuple{Any,Real}}}})
-    a, bs = first(y_with_ladj), Base.tail(y_with_ladj)
-    return foldl(_combine_y_ladj, bs, init = ((a[1],), a[2]))
-end
+_with_ladj_on_mapped(::Any, noladj::NoLogAbsDetJacobian) = noladj
 
 function with_logabsdet_jacobian(mapped_f::Base.Broadcast.BroadcastFunction, X)
     f = mapped_f.f
     y_with_ladj = broadcast(Base.Fix1(with_logabsdet_jacobian, f), X)
-    _with_ladj_on_mapped(y_with_ladj)
+    _with_ladj_on_mapped(y_with_ladj, NoLogAbsDetJacobian(mapped_f, X))
 end
 
 function with_logabsdet_jacobian(mapped_f::Base.Fix1{<:Union{typeof(map),typeof(broadcast)}}, X)
     map_or_bc = mapped_f.f
     f = mapped_f.x
     y_with_ladj = map_or_bc(Base.Fix1(with_logabsdet_jacobian, f), X)
-    _with_ladj_on_mapped(y_with_ladj)
+    _with_ladj_on_mapped(y_with_ladj, NoLogAbsDetJacobian(mapped_f, X))
 end
 
 
